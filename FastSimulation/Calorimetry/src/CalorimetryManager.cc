@@ -123,6 +123,35 @@ CalorimetryManager::CalorimetryManager(FSimEvent * aSimEvent,
     dbe->book1D("ParticlesEnergy","Log Particles Energy; log10(E / GeV); #Particles", 30, 0, 3);
 	
   }
+/*
+mytime= new std::vector<double>;
+myx= new std::vector<double>;
+myy= new std::vector<double>;
+myz= new std::vector<double>;
+mydepth= new std::vector<double>;
+myenergy= new std::vector<double>;
+*/
+
+
+fTree=new TTree("FitParametersTree","FitParametersTree");
+fTree->Branch("NFitParameters",&NFitParameters,"NFitParameters/I");
+fTree->Branch("mytime","std::vector<double>",&mytime);
+fTree->Branch("myx","std::vector<double>",&myx);
+fTree->Branch("myy","std::vector<double>",&myy);
+fTree->Branch("myz","std::vector<double>",&myz);
+fTree->Branch("mydepth","std::vector<double>",&mydepth);
+fTree->Branch("myenergy","std::vector<double>",&myenergy);
+fTree->Branch("energyGen",&energyGen,"energyGen/D");
+fTree->Branch("phiGen",&phiGen,"phiGen/D");
+fTree->Branch("etaGen",&etaGen,"etaGen/D");
+fTree->Branch("startingPoint",&startingPoint,"startingPoint/D");
+fTree->Branch("c",&c,"c/D");
+fTree->Branch("alpha1",&alpha1,"alpha1/D");
+fTree->Branch("beta1",&beta1,"beta1/D");
+fTree->Branch("alpha2",&alpha2,"alpha2/D");
+fTree->Branch("beta2",&beta2,"beta2/D");
+
+
 
    myHistos = Histos::instance();
 //   myHistos->book("Energy_vs_Depth",100,0,10,140,0,0.6);
@@ -135,10 +164,13 @@ CalorimetryManager::CalorimetryManager(FSimEvent * aSimEvent,
    myHistos->book("phi_vs_depth_ECAL",100,0,10,100,-3.5,3.5);
 
 
-   myHistos->book("Energy_vs_Depth_HCAL",100,3,7,140,0,0.6);
+   myHistos->book("Energy_vs_Depth_HCAL",100,0,15,140,0,0.6);
    myHistos->book("lateral_profile_HCAL",100,-10,10,100,-10,10);
    myHistos->book("r_vs_depth_HCAL",100,3,5,100,0,22);
    myHistos->book("phi_vs_depth_HCAL",100,3,5,100,-3.5,3.5);
+   myHistos->book("Energy_vs_NumberOfSpots_HCAL",200,0,200,140,0,0.6);
+   myHistos->book("X_vs_depth_HCAL",100,0,15,100,-10,10);
+   myHistos->book("Y_vs_depth_HCAL",100,0,15,100,-10,10);
 
 
 
@@ -203,6 +235,11 @@ CalorimetryManager::~CalorimetryManager()
 
   if ( theProfile ) delete theProfile;
 myHistos->put("histos.root");
+TFile * f2= new TFile("reza.root","recreate");
+f2->cd();
+fTree->Write();
+f2->Write();
+f2->Close();
 }
 
 void CalorimetryManager::reconstruct(RandomEngineAndDistribution const* random)
@@ -695,10 +732,17 @@ void CalorimetryManager::HDShowerSimulation(const FSimTrack& myTrack, RandomEngi
     // Shower simulation
     bool status = false;
     int  mip = 2;
+mytime= new std::vector<double>;
+myx= new std::vector<double>;
+myy= new std::vector<double>;
+myz= new std::vector<double>;
+mydepth= new std::vector<double>;
+myenergy= new std::vector<double>;
+
     // Use HFShower for HF
 //    std::cout<<"**********************************************"<<std::endl;
 //    std::cout<<"myTrack.type()"<<myTrack.type()<<std::endl;
- std::cout<<" EGEN   "<<eGen<<std::endl;  
+ //std::cout<<" EGEN   "<<eGen<<std::endl;  
     if ( !myTrack.onEcal() && !myTrack.onHcal() ) {
       //      std::cout << "CalorimetryManager::HDShowerSimulation(): track entrance = "
       //		<< myTrack.vfcalEntrance().vertex().X() << " "
@@ -763,6 +807,11 @@ void CalorimetryManager::HDShowerSimulation(const FSimTrack& myTrack, RandomEngi
         theProfile->initialize(showerType,eGen,globalTime,charge,gfpos,gfmom);
         theProfile->loadParameters();
         theProfile->hadronicParameterization();
+        std::vector<double> G2(2);
+
+	G2=theProfile->hcalpar();
+	std::cout<<"hhhhhhhhhhhhhhhhhhhhhhh     "<<G2[1]<<std::endl;
+	
 
         //make hits
 	std::vector<GflashHit>& gflashHitList = theProfile->getGflashHitList();
@@ -775,14 +824,26 @@ double DEPTHECAL=0;
 double EDEPTHECAL=0;
 double DEPTHHCAL=0;
 double EDEPTHHCAL=0;
+double numberofspotHCAL=0;
+c=G2[0];
+alpha1=G2[1];
+beta1=G2[2];
+alpha2=G2[3];
+beta2=G2[4];
 
 double ETOT=0;
 //double ID=0;
+energyGen=eGen;
+phiGen=pathPhi;
+etaGen=pathEta;
+startingPoint=theProfile->getGflashShowino()->getPathLengthAtShower()-theProfile->getGflashShowino()->getHelix()->getPathLengthAtRhoEquals(Gflash::Rmin[Gflash::kHB]);
+
+
 
         for( ; spotIter != spotIterEnd; spotIter++){
 
           double pathLength = theProfile->getGflashShowino()->getPathLengthAtShower()
-            + (30)*(spotIter->getTime() - globalTime);
+            + (30*100/eGen)*(spotIter->getTime() - globalTime);
 
           double currentDepth = std::max(0.0,pathLength - theProfile->getGflashShowino()->getPathLengthOnEcal());
 
@@ -801,16 +862,25 @@ ETOT=ETOT+spotIter->getEnergy()/CLHEP::GeV;
           Gflash3Vector lateralDisplacement = positionAtCurrentDepth - spotIter->getPosition()/CLHEP::cm;
           double rShower = lateralDisplacement.r();
           double azimuthalAngle = lateralDisplacement.phi();
-//std::cout<<"current r     "<<rShower<<std::endl;
-//std::cout<<"--------------------------------------     "<<std::endl;
+//std::cout<<" positionAtCurrentDepth     "<<theProfile->getGflashShowino()->getHelix()->getPathLengthAtRhoEquals(Gflash::Rmin[Gflash::kHB])/Gflash::intLength[Gflash::kHB]<<std::endl;
+//std::cout<<" spotIter->getPosition()/CLHEP::cm     "<<spotIter->getPosition()/CLHEP::cm<<std::endl;
+//std::cout<<" ******************     "<<std::endl;
+
 //   myHistos->book("r_vs_depth",100,0,10,100,-10,10);
+mytime->push_back(spotIter->getTime() - globalTime);
+myx->push_back(lateralDisplacement.x());
+myy->push_back(lateralDisplacement.y());
+myz->push_back(lateralDisplacement.z());
+mydepth->push_back((pathLength-theProfile->getGflashShowino()->getHelix()->getPathLengthAtRhoEquals(Gflash::Rmin[Gflash::kHB]))/Gflash::intLength[Gflash::kHB]);
+myenergy->push_back(spotIter->getEnergy()/CLHEP::GeV);
+ 
    
-          whichCalor = Gflash::getCalorimeterNumber(positionAtCurrentDepth);
+          whichCalor= Gflash::getCalorimeterNumber(positionAtCurrentDepth);
 
           if(whichCalor==Gflash::kESPM || whichCalor==Gflash::kENCA) {
 
 if (currentDepth>DEPTHECAL){
-myHistos->fill("Energy_vs_Depth_ECAL", currentDepth/Gflash::intLength[Gflash::kHB],EDEPTHECAL);
+myHistos->fill("Energy_vs_Depth_ECAL", currentDepth/Gflash::intLength[Gflash::kHB]-theProfile->getGflashShowino()->getPathLengthAtShower()/Gflash::intLength[Gflash::kHB],EDEPTHECAL);
 DEPTHECAL=currentDepth;
 EDEPTHECAL=spotIter->getEnergy()/CLHEP::GeV;
 }
@@ -818,10 +888,10 @@ else{
 EDEPTHECAL=EDEPTHECAL+spotIter->getEnergy()/CLHEP::GeV;
 }
 
-if (currentDepth/Gflash::intLength[Gflash::kHB]>3.8 && currentDepth/Gflash::intLength[Gflash::kHB]<4.5){
+if (currentDepth/Gflash::intLength[Gflash::kHB]>5 && currentDepth/Gflash::intLength[Gflash::kHB]<6){
 myHistos->fill("lateral_profile_ECAL",lateralDisplacement.x(),lateralDisplacement.y());
 }
-myHistos->fill("r_vs_depth_ECAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.r());
+myHistos->fill("r_vs_depth_ECAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.mag());
 myHistos->fill("phi_vs_depth_ECAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.phi());
 
 
@@ -836,17 +906,25 @@ myHistos->fill("phi_vs_depth_ECAL", currentDepth/Gflash::intLength[Gflash::kHB] 
 
 if (currentDepth>DEPTHHCAL){
 myHistos->fill("Energy_vs_Depth_HCAL", currentDepth/Gflash::intLength[Gflash::kHB],EDEPTHHCAL);
+myHistos->fill("Energy_vs_NumberOfSpots_HCAL", numberofspotHCAL,EDEPTHHCAL);
+NFitParameters = 2;
 DEPTHHCAL=currentDepth;
 EDEPTHHCAL=spotIter->getEnergy()/CLHEP::GeV;
+numberofspotHCAL=0;
 }
 else{
 EDEPTHHCAL=EDEPTHHCAL+spotIter->getEnergy()/CLHEP::GeV;
+numberofspotHCAL = numberofspotHCAL +1; 
 }
-if (currentDepth/Gflash::intLength[Gflash::kHB]>3.8 && currentDepth/Gflash::intLength[Gflash::kHB]<4.5){
+if (currentDepth/Gflash::intLength[Gflash::kHB]>5 && currentDepth/Gflash::intLength[Gflash::kHB]<6){
 myHistos->fill("lateral_profile_HCAL",lateralDisplacement.x(),lateralDisplacement.y());
 }
-myHistos->fill("r_vs_depth_HCAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.r());
+myHistos->fill("r_vs_depth_HCAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.mag());
 myHistos->fill("phi_vs_depth_HCAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.phi());
+
+myHistos->fill("X_vs_depth_HCAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.x());
+myHistos->fill("Y_vs_depth_HCAL", currentDepth/Gflash::intLength[Gflash::kHB] ,lateralDisplacement.y());
+
 
 
             bool setHDdepth = myHcalHitMaker.setDepth(currentDepth,true);
@@ -856,10 +934,10 @@ myHistos->fill("phi_vs_depth_HCAL", currentDepth/Gflash::intLength[Gflash::kHB] 
           }
         }
         status = true;
-std::cout << "E TOTAL " << ETOT <<std::endl;
-std::cout << "            " <<Gflash::intLength[Gflash::kHB]<<std::endl;
-std::cout << "            " <<theProfile->getGflashShowino()->getPathLengthOnEcal()<<std::endl;
-
+//std::cout << "E TOTAL " << ETOT <<std::endl;
+//std::cout << "            " <<Gflash::intLength[Gflash::kHB]<<std::endl;
+//std::cout << "            " <<theProfile->getGflashShowino()->getPathLengthOnEcal()<<std::endl;
+fTree->Fill();
       }
       else {
 	edm::LogInfo("FastSimulationCalorimetry") << " SimMethod " << hdSimMethod_ <<" is NOT available ";
@@ -1320,7 +1398,6 @@ void CalorimetryManager::respCorr(double p) {
       }
     }
   }
-
   if(debug_)
     LogInfo("FastCalorimetry") << " p, ecorr, hcorr = " << p << " "  
 			        << ecorr << "  " << hcorr << std::endl;

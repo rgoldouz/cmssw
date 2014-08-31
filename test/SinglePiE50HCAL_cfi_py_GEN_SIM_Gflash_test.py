@@ -8,6 +8,8 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process('SIM')
 from FastSimulation.Calorimetry.Calorimetry_cff import *
 FamosCalorimetryBlock.Calorimetry.HCAL.SimMethod =2
+#FamosCalorimetryBlock.Calorimetry.Debug = True
+
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -25,7 +27,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1)
+    input = cms.untracked.int32(1000)
 )
 
 # Input source
@@ -90,12 +92,12 @@ process.generator = cms.EDProducer("FlatRandomEGunProducer",
     PGunParameters = cms.PSet(
 
         PartID = cms.vint32(211),
-       MaxEta = cms.double(0.1),
-        MaxPhi = cms.double(0.12),
-        MinEta = cms.double(0.0),
-        MinE = cms.double(19.99),
-        MinPhi = cms.double(0),
-        MaxE = cms.double(20.01)
+       MaxEta = cms.double(0.01),
+        MaxPhi = cms.double(2.1),
+        MinEta = cms.double(0.00),
+        MinE = cms.double(20.00),
+        MinPhi = cms.double(1.0),
+        MaxE = cms.double(20.1)
     ),
     Verbosity = cms.untracked.int32(0),
     psethack = cms.string('single pi E 50 HCAL'),
