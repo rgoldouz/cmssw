@@ -13,7 +13,7 @@
 #include "FastSimulation/CaloHitMakers/interface/EcalHitMaker.h"
 #include "FastSimulation/CaloHitMakers/interface/HcalHitMaker.h"
 #include "FastSimulation/CaloHitMakers/interface/PreshowerHitMaker.h"
-
+#include <TTree.h>
 // For the uint32_t
 //#include <boost/cstdint.hpp>
 #include <map>
@@ -98,7 +98,33 @@ class CalorimetryManager{
 
   Histos * myHistos;
   DQMStore * dbe;
+  TTree *fTree;
+int NFitParameters;
+std::vector<double> *mytime;
+std::vector<double> *myx;
+std::vector<double> *myy;
+std::vector<double> *myz;
+std::vector<double> *mydepth;
+std::vector<double> *myenergy;
+double energyGen;
+double phiGen;
+double etaGen; 
+double startingPoint;
+double c;
+double alpha1;
+double beta1;
+double alpha2;
+double beta2;
 
+
+/*
+std::vector<double> myx;
+std::vector<double> myy;
+std::vector<double> myz;
+std::vector<double> myr;
+std::vector<double> myphi;
+std::vector<double> mydepth;
+*/
 
   HCALResponse* myHDResponse_;
   HSParameters * myHSParameters_;
