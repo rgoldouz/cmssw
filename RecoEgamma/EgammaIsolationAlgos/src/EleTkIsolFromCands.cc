@@ -81,7 +81,7 @@ EleTkIsolFromCands::calIsol(const double eleEta,const double elePhi,
   const TrkCuts& cuts = std::abs(eleEta)<1.5 ? barrelCuts_ : endcapCuts_;
   
   for(auto& cand  : cands){
-    if(cand.charge()!=0){
+    if(cand.bestTrack() && cand.charge()!=0){
       const reco::Track& trk = cand.pseudoTrack(); 
       double trkPt = std::abs(cand.pdgId())!=11 ? trk.pt() : getTrkPt(trk,eles);
       if(passTrkSel(trk,trkPt,cuts,eleEta,elePhi,eleVZ)){	
