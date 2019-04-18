@@ -26,7 +26,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(500000000)
+    input = cms.untracked.int32(100000000)
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 100000
 
@@ -37,7 +37,7 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('Configuration/GenProduction/python/TOP-RunIIFall17wmLHEGS-00033-fragment.py nevts:500000000'),
+    annotation = cms.untracked.string('Configuration/GenProduction/python/TOP-RunIIFall17wmLHEGS-00033-fragment.py nevts:100000000'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -68,7 +68,7 @@ process.LHEoutput = cms.OutputModule("PoolOutputModule",
         dataTier = cms.untracked.string('LHE'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:WW_M600to1200_inLHE.root'),
+    fileName = cms.untracked.string('file:TT_M500to1200_inLHE.root'),
     outputCommands = process.LHEEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -140,10 +140,13 @@ process.generator = cms.EDFilter("Pythia8HadronizerFilter",
     pythiaPylistVerbosity = cms.untracked.int32(1)
 )
 
+from IOMC.RandomEngine.RandomServiceHelper import RandomNumberServiceHelper
+randSvc = RandomNumberServiceHelper(process.RandomNumberGeneratorService)
+randSvc.populate()
 
 process.externalLHEProducer = cms.EDProducer("ExternalLHEProducer",
-    args = cms.vstring('/cvmfs/cms.cern.ch/phys_generator/gridpacks/2017/13TeV/powheg/V2/WW_WWTo2L2Nu/v1/WW_WWTo2L2Nu_slc6_amd64_gcc630_CMSSW_9_3_0.tgz'),
-    nEvents = cms.untracked.uint32(500000000),
+    args = cms.vstring('/user/rgoldouz/GenContact/TTWWW/CMSSW_9_3_4/src/TT/TT_hdamp_NNPDF31_NNLO_dilepton.tgz'),
+    nEvents = cms.untracked.uint32(100000000),
     numberOfParameters = cms.uint32(1),
     outputFile = cms.string('cmsgrid_final.lhe'),
     scriptName = cms.FileInPath('GeneratorInterface/LHEInterface/data/run_generic_tarball_cvmfs.sh')
@@ -153,8 +156,8 @@ process.lheGenericMassFilter = cms.EDFilter("LHEGenericMassFilter",
     src = cms.InputTag("externalLHEProducer"),
     NumRequired = cms.int32(2),
     ParticleID = cms.vint32(11,13,15),
-    MinMass = cms.double(600.0),
-    MaxMass = cms.double(1200.0),
+    MinMass = cms.double(500.0),
+    MaxMass = cms.double(12000.0),
 )   
 
 process.ProductionFilterSequence = cms.Sequence(process.lheGenericMassFilter + process.generator)
