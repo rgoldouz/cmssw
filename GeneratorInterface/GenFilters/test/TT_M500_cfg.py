@@ -145,7 +145,7 @@ randSvc = RandomNumberServiceHelper(process.RandomNumberGeneratorService)
 randSvc.populate()
 
 process.externalLHEProducer = cms.EDProducer("ExternalLHEProducer",
-    args = cms.vstring('/user/rgoldouz/GenContact/TTWWW/CMSSW_9_3_4/src/TT/TT_hdamp_NNPDF31_NNLO_dilepton.tgz'),
+    args = cms.vstring('/cvmfs/cms.cern.ch/phys_generator/gridpacks/2017/13TeV/powheg/V2/TT_hvq//TT_hdamp_NNPDF31_NNLO_dilepton.tgz'),
     nEvents = cms.untracked.uint32(100000000),
     numberOfParameters = cms.uint32(1),
     outputFile = cms.string('cmsgrid_final.lhe'),

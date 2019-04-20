@@ -1,10 +1,5 @@
-# Auto generated configuration file
-# using: 
-# Revision: 1.19 
-# Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
 # with command line options: Configuration/GenProduction/python/TOP-RunIIFall17wmLHEGS-00033-fragment.py --fileout file:TOP-RunIIFall17wmLHEGS-00033.root --mc --eventcontent RAWSIM,LHE --datatier GEN-SIM,LHE --conditions 93X_mc2017_realistic_v3 --beamspot Realistic25ns13TeVEarly2017Collision --step LHE,GEN,SIM --nThreads 8 --geometry DB:Extended --era Run2_2017 --python_filename TOP-RunIIFall17wmLHEGS-00033_1_cfg.py --no_exec --customise Configuration/DataProcessing/Utils.addMonitoring -n 745
 import FWCore.ParameterSet.Config as cms
-
 from Configuration.StandardSequences.Eras import eras
 
 process = cms.Process('LHE',eras.Run2_2017)
@@ -26,7 +21,7 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(5)
+    input = cms.untracked.int32(100000000)
 )
 process.MessageLogger.cerr.FwkReport.reportEvery = 100000
 
@@ -37,7 +32,7 @@ process.options   = cms.untracked.PSet( wantSummary = cms.untracked.bool(True) )
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('Configuration/GenProduction/python/TOP-RunIIFall17wmLHEGS-00033-fragment.py nevts:5'),
+    annotation = cms.untracked.string('Configuration/GenProduction/python/TOP-RunIIFall17wmLHEGS-00033-fragment.py nevts:100000000'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -68,7 +63,7 @@ process.LHEoutput = cms.OutputModule("PoolOutputModule",
         dataTier = cms.untracked.string('LHE'),
         filterName = cms.untracked.string('')
     ),
-    fileName = cms.untracked.string('file:WW_M600to1200_inLHE.root'),
+    fileName = cms.untracked.string('file:WW_M200_inLHE.root'),
     outputCommands = process.LHEEventContent.outputCommands,
     splitLevel = cms.untracked.int32(0)
 )
@@ -156,20 +151,16 @@ process.lheGenericMassFilter = cms.EDFilter("LHEGenericMassFilter",
     src = cms.InputTag("externalLHEProducer"),
     NumRequired = cms.int32(2),
     ParticleID = cms.vint32(11,13,15),
-    MinMass = cms.double(600.0),
-    MaxMass = cms.double(1200.0),
+    MinMass = cms.double(200.0),
+    MaxMass = cms.double(12000.0),
 )   
 
 process.ProductionFilterSequence = cms.Sequence(process.lheGenericMassFilter + process.generator)
 
 # Path and EndPath definitions
 process.lhe_step = cms.Path(process.externalLHEProducer * process.lheGenericMassFilter)
-#process.lhe_GenericMassFilter = cms.Path(process.lheGenericMassFilter)
-#process.generation_step = cms.Path(process.pgen)
-#process.simulation_step = cms.Path(process.psim)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-#process.RAWSIMoutput_step = cms.EndPath(process.RAWSIMoutput)
 process.LHEoutput_step = cms.EndPath(process.LHEoutput)
 
 # Schedule definition
