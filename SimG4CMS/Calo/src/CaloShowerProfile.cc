@@ -223,7 +223,6 @@ void CaloShowerProfile::update(const EndOfEvent * evt) {
   m_sim_eHadronic = h_eHadronic->Integral();
   m_sim_eTotal = h_ePi0First->Integral() + h_ePi0Late->Integral() + h_eHadronic->Integral();
 
-std::cout<<"sim_ePi0First="<<m_sim_ePi0First<<" p_ePi0First="<<m_p_ePi0First<<"  sim_ePi0Late="<<m_sim_ePi0Late<<"  p_ePi0Late="<<m_p_ePi0Late<<std::endl;
 
   m_pvInt_x = pvPosition.x();
   m_pvInt_y = pvPosition.y();
