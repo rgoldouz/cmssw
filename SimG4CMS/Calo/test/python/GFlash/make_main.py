@@ -5,14 +5,15 @@ import readline
 import string
 
 samples = [
-'RezaAnalysis_100GeV',
-'RezaAnalysis_10GeV',
-'RezaAnalysis_1GeV',
-'RezaAnalysis_200GeV',
-'RezaAnalysis_20GeV',
-'RezaAnalysis_2GeV',
-'RezaAnalysis_50GeV',
-'RezaAnalysis_5GeV'
+#'RezaAnalysis_100GeV',
+#'RezaAnalysis_10GeV',
+#'RezaAnalysis_1GeV',
+#'RezaAnalysis_200GeV',
+#'RezaAnalysis_20GeV',
+#'RezaAnalysis_2GeV',
+#'RezaAnalysis_50GeV',
+#'RezaAnalysis_5GeV'
+'RezaAnalysis'
 ]
 
 

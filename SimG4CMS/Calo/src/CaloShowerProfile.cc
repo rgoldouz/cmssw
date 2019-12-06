@@ -79,6 +79,14 @@ void CaloShowerProfile::update(const BeginOfJob * job) {
   eventTree->Branch("h_eHadronic","TH1F",&h_eHadronic,32000,0);
   eventTree->Branch("h_ePi0First","TH1F",&h_ePi0First,32000,0);
   eventTree->Branch("h_ePi0Late" ,"TH1F",&h_ePi0Late ,32000,0);
+
+  eventTree->Branch("h_eHadronic_ECAL","TH1F",&h_eHadronic_ECAL,32000,0);
+  eventTree->Branch("h_ePi0First_ECAL","TH1F",&h_ePi0First_ECAL,32000,0);
+  eventTree->Branch("h_ePi0Late_ECAL" ,"TH1F",&h_ePi0Late_ECAL ,32000,0);
+
+  eventTree->Branch("h_eHadronic_HCAL","TH1F",&h_eHadronic_HCAL,32000,0);
+  eventTree->Branch("h_ePi0First_HCAL","TH1F",&h_ePi0First_HCAL,32000,0);
+  eventTree->Branch("h_ePi0Late_HCAL" ,"TH1F",&h_ePi0Late_HCAL ,32000,0);
 }
 
 //==================================================================== per RUN
@@ -96,6 +104,12 @@ void CaloShowerProfile::update(const BeginOfEvent * evt) {
   h_eHadronic    = new TH1F("h_eHadronic","Hadronic longitudinal shower energy profile",3000,0,30000);
   h_ePi0First    = new TH1F("h_ePi0First","First Pi0 longitudinal shower energy profile",3000,0,30000);
   h_ePi0Late     = new TH1F("h_ePi0Late" ,"Late Pi0 longitudinal shower energy profile",3000,0,30000);
+  h_eHadronic_ECAL    = new TH1F("h_eHadronic_ECAL","Hadronic longitudinal shower energy profile",3000,0,30000);
+  h_ePi0First_ECAL    = new TH1F("h_ePi0First_ECAL","First Pi0 longitudinal shower energy profile",3000,0,30000);
+  h_ePi0Late_ECAL     = new TH1F("h_ePi0Late_ECAL" ,"Late Pi0 longitudinal shower energy profile",3000,0,30000);
+  h_eHadronic_HCAL    = new TH1F("h_eHadronic_HCAL","Hadronic longitudinal shower energy profile",3000,0,30000);
+  h_ePi0First_HCAL    = new TH1F("h_ePi0First_HCAL","First Pi0 longitudinal shower energy profile",3000,0,30000);
+  h_ePi0Late_HCAL     = new TH1F("h_ePi0Late_HCAL" ,"Late Pi0 longitudinal shower energy profile",3000,0,30000);
 
   G4PrimaryParticle* thePrim=0;
   int nvertex = (*evt)()->GetNumberOfPrimaryVertex();
@@ -162,7 +176,6 @@ void CaloShowerProfile::update(const G4Step * aStep) {
     name02.assign(name01,0,3);
     name03.assign(name01,0,2);
 
-
 /*
     if ( name02=="HBS" || name02=="HBL" || name02=="HES" || name02=="HEP" ||
          name02=="HEB" || name02=="EBR" || name02=="EFR" || name03=="SF"  ||
@@ -174,7 +187,11 @@ void CaloShowerProfile::update(const G4Step * aStep) {
 
       hitPosition = G4ThreeVector(thePostStepPoint.x(),thePostStepPoint.y(),thePostStepPoint.z());
       hitXYZ      = (*beamline_RM)*(hitPosition);
-  
+ 
+//     if (aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()) { 
+//     std::cout<<"the Sensitive Detector:"<< aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;}
+//     else std::cout<<aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;
+
       if ( !firstInter ) {
         pvPosition = thePreStepPoint;
         firstInter = true;
@@ -198,16 +215,22 @@ void CaloShowerProfile::update(const G4Step * aStep) {
         }
       }
 
-
-
+      G4String DetectorHit = aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
       if(std::find(fPi0ID.begin(), fPi0ID.end(), parentID) != fPi0ID.end()){
-        h_ePi0First->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Ecal")!= std::string::npos) h_ePi0First_ECAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Hcal")!= std::string::npos) h_ePi0First_HCAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
         if(!(std::find(fPi0ID.begin(), fPi0ID.end(), trackID) != fPi0ID.end())) fPi0ID.push_back(trackID);}
+
       else if(std::find(lPi0ID.begin(), lPi0ID.end(), parentID) != lPi0ID.end()){ 
         h_ePi0Late->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Ecal")!= std::string::npos) h_ePi0Late_ECAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Hcal")!= std::string::npos) h_ePi0Late_HCAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
         if(!(std::find(lPi0ID.begin(), lPi0ID.end(), trackID) != lPi0ID.end())) lPi0ID.push_back(trackID);}
+
       else{
-        h_eHadronic->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);}
+        h_eHadronic->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Ecal")!= std::string::npos) h_eHadronic_ECAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Hcal")!= std::string::npos) h_eHadronic_HCAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);}
      
 //    }
   }  
@@ -233,5 +256,15 @@ void CaloShowerProfile::update(const EndOfEvent * evt) {
   m_pvIneInt_z = pvUVW.z();
 
   eventTree->Fill();
+
+  delete h_eHadronic        ; 
+  delete h_ePi0First        ;
+  delete h_ePi0Late         ;
+  delete h_eHadronic_ECAL   ;
+  delete h_ePi0First_ECAL   ;
+  delete h_ePi0Late_ECAL    ;
+  delete h_eHadronic_HCAL   ;
+  delete h_ePi0First_HCAL   ;
+  delete h_ePi0Late_HCAL    ;
 }
 

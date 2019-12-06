@@ -103,7 +103,12 @@ private:
   TH1F *h_eHadronic;
   TH1F *h_ePi0First;
   TH1F *h_ePi0Late;
-
+  TH1F *h_eHadronic_ECAL;
+  TH1F *h_ePi0First_ECAL;
+  TH1F *h_ePi0Late_ECAL;
+  TH1F *h_eHadronic_HCAL;
+  TH1F *h_ePi0First_HCAL;
+  TH1F *h_ePi0Late_HCAL;
 };
 
 #endif

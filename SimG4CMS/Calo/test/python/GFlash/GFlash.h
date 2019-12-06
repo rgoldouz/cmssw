@@ -42,6 +42,12 @@ public :
    TH1F            *h_eHadronic;
    TH1F            *h_ePi0First;
    TH1F            *h_ePi0Late;
+   TH1F            *h_eHadronic_ECAL;
+   TH1F            *h_ePi0First_ECAL;
+   TH1F            *h_ePi0Late_ECAL;
+   TH1F            *h_eHadronic_HCAL;
+   TH1F            *h_ePi0First_HCAL;
+   TH1F            *h_ePi0Late_HCAL;
 
    // List of branches
    TBranch        *b_p_E;   //!
@@ -63,6 +69,13 @@ public :
    TBranch        *b_h_eHadronic;   //!
    TBranch        *b_h_ePi0First;   //!
    TBranch        *b_h_ePi0Late;   //!
+   TBranch        *b_h_eHadronic_ECAL;
+   TBranch        *b_h_ePi0First_ECAL;
+   TBranch        *b_h_ePi0Late_ECAL;
+   TBranch        *b_h_eHadronic_HCAL;
+   TBranch        *b_h_ePi0First_HCAL;
+   TBranch        *b_h_ePi0Late_HCAL;
+
 
    GFlash(TTree *tree=0);
    virtual ~GFlash();
@@ -135,6 +148,12 @@ void GFlash::Init(TTree *tree)
    h_eHadronic = 0;
    h_ePi0First = 0;
    h_ePi0Late = 0;
+   h_eHadronic_ECAL = 0;
+   h_ePi0First_ECAL = 0;
+   h_ePi0Late_ECAL = 0;
+   h_eHadronic_HCAL = 0;
+   h_ePi0First_HCAL = 0;
+   h_ePi0Late_HCAL = 0;
    // Set branch addresses and branch pointers
    if (!tree) return;
    fChain = tree;
@@ -160,6 +179,12 @@ void GFlash::Init(TTree *tree)
    fChain->SetBranchAddress("h_eHadronic", &h_eHadronic, &b_h_eHadronic);
    fChain->SetBranchAddress("h_ePi0First", &h_ePi0First, &b_h_ePi0First);
    fChain->SetBranchAddress("h_ePi0Late", &h_ePi0Late, &b_h_ePi0Late);
+   fChain->SetBranchAddress("h_eHadronic_ECAL", &h_eHadronic_ECAL, &b_h_eHadronic_ECAL);
+   fChain->SetBranchAddress("h_ePi0First_ECAL", &h_ePi0First_ECAL, &b_h_ePi0First_ECAL);
+   fChain->SetBranchAddress("h_ePi0Late_ECAL", &h_ePi0Late_ECAL, &b_h_ePi0Late_ECAL);
+   fChain->SetBranchAddress("h_eHadronic_HCAL", &h_eHadronic_HCAL, &b_h_eHadronic_HCAL);
+   fChain->SetBranchAddress("h_ePi0First_HCAL", &h_ePi0First_HCAL, &b_h_ePi0First_HCAL);
+   fChain->SetBranchAddress("h_ePi0Late_HCAL", &h_ePi0Late_HCAL, &b_h_ePi0Late_HCAL);
    Notify();
 }
 
