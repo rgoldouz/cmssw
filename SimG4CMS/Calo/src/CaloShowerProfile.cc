@@ -217,6 +217,7 @@ void CaloShowerProfile::update(const G4Step * aStep) {
 
       G4String DetectorHit = aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
       if(std::find(fPi0ID.begin(), fPi0ID.end(), parentID) != fPi0ID.end()){
+        h_ePi0First->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
         if(DetectorHit.find("Ecal")!= std::string::npos) h_ePi0First_ECAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
         if(DetectorHit.find("Hcal")!= std::string::npos) h_ePi0First_HCAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
         if(!(std::find(fPi0ID.begin(), fPi0ID.end(), trackID) != fPi0ID.end())) fPi0ID.push_back(trackID);}
