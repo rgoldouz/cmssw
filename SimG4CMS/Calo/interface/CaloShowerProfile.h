@@ -71,6 +71,7 @@ private:
   std::string               fileName;
   double                    eta0, phi0;
   bool                      firstInter, firstInel;
+  bool                      saveHits;
   G4RotationMatrix*  beamline_RM;
   double                    ePi0late, ePi0first, eHadtot;
   G4ThreeVector      hitPosition, hitXYZ;
@@ -99,6 +100,12 @@ private:
   float m_pvIneInt_x;
   float m_pvIneInt_y;
   float m_pvIneInt_z;
+
+
+  std::vector<float> *m_hit_x;
+  std::vector<float> *m_hit_y;
+  std::vector<float> *m_hit_z;
+  std::vector<float> *m_hit_e;
 
   TH1F *h_eHadronic;
   TH1F *h_ePi0First;

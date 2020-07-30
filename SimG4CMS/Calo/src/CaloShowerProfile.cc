@@ -37,6 +37,7 @@ CaloShowerProfile::CaloShowerProfile(const edm::ParameterSet &p) {
   edm::ParameterSet m_Anal = p.getParameter<edm::ParameterSet>("CaloShowerProfile");
   eta0         = m_Anal.getParameter<double>("Eta0");
   phi0         = m_Anal.getParameter<double>("Phi0");
+  saveHits     = m_Anal.getParameter<bool>("saveHits");
   fileName     = m_Anal.getParameter<std::string>("FileName");
 
 } 
@@ -52,6 +53,10 @@ void CaloShowerProfile::update(const BeginOfJob * job) {
 //  m_p_eta   = new float;
 //  m_p_phi   = new float;
 //  m_p_pdgid = new int;
+  m_hit_x = new std::vector<float>;
+  m_hit_y = new std::vector<float>;
+  m_hit_z = new std::vector<float>;
+  m_hit_e = new std::vector<float>;
 
   eventTree = fs->make<TTree>("eventTree", "Event tree");
   eventTree->Branch("p_E",     &m_p_E, "p_E/F");
@@ -76,6 +81,11 @@ void CaloShowerProfile::update(const BeginOfJob * job) {
   eventTree->Branch("sim_pvIneInt_y",    &m_pvIneInt_y, "sim_pvIneInt_y/F");
   eventTree->Branch("sim_pvIneInt_z",    &m_pvIneInt_z, "sim_pvIneInt_z/F");
 
+  eventTree->Branch("hit_x",    &m_hit_x);
+  eventTree->Branch("hit_y",    &m_hit_y);
+  eventTree->Branch("hit_z",    &m_hit_z);
+  eventTree->Branch("hit_e",    &m_hit_e);
+
   eventTree->Branch("h_eHadronic","TH1F",&h_eHadronic,32000,0);
   eventTree->Branch("h_ePi0First","TH1F",&h_ePi0First,32000,0);
   eventTree->Branch("h_ePi0Late" ,"TH1F",&h_ePi0Late ,32000,0);
@@ -97,6 +107,11 @@ void CaloShowerProfile::update(const BeginOfRun * run) {
 
 //=================================================================== per EVENT
 void CaloShowerProfile::update(const BeginOfEvent * evt) {
+
+  m_hit_x->clear();
+  m_hit_y->clear();
+  m_hit_z->clear();
+  m_hit_e->clear();
 
   firstInter = false;
   firstInel  = false;
@@ -191,6 +206,13 @@ void CaloShowerProfile::update(const G4Step * aStep) {
 //     if (aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()) { 
 //     std::cout<<"the Sensitive Detector:"<< aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;}
 //     else std::cout<<aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;
+
+      if(saveHits){
+        m_hit_x->push_back(hitXYZ.x());
+        m_hit_y->push_back(hitXYZ.y());
+        m_hit_z->push_back(hitXYZ.z());
+        m_hit_e->push_back(aStep->GetTotalEnergyDeposit()/GeV);
+      }
 
       if ( !firstInter ) {
         pvPosition = thePreStepPoint;
