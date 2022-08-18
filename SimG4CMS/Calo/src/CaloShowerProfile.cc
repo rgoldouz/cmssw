@@ -76,6 +76,8 @@ void CaloShowerProfile::update(const BeginOfJob * job) {
   eventTree->Branch("sim_pvInt_x",    &m_pvInt_x, "sim_pvInt_x/F");
   eventTree->Branch("sim_pvInt_y",    &m_pvInt_y, "sim_pvInt_y/F");
   eventTree->Branch("sim_pvInt_z",    &m_pvInt_z, "sim_pvInt_z/F");
+  eventTree->Branch("sim_EcalEntrance_z",    &m_EcalEntrance_z, "sim_EcalEntrance_z/F");
+
 
   eventTree->Branch("sim_pvIneInt_x",    &m_pvIneInt_x, "sim_pvIneInt_x/F");
   eventTree->Branch("sim_pvIneInt_y",    &m_pvIneInt_y, "sim_pvIneInt_y/F");
@@ -115,6 +117,7 @@ void CaloShowerProfile::update(const BeginOfEvent * evt) {
 
   firstInter = false;
   firstInel  = false;
+  EcalEntrance = false;
 
   h_eHadronic    = new TH1F("h_eHadronic","Hadronic longitudinal shower energy profile",3000,0,30000);
   h_ePi0First    = new TH1F("h_ePi0First","First Pi0 longitudinal shower energy profile",3000,0,30000);
@@ -138,6 +141,7 @@ void CaloShowerProfile::update(const BeginOfEvent * evt) {
     }
   }
 
+  beamline_RM = new G4RotationMatrix;
   if (thePrim != 0) {
     float px = thePrim->GetPx()/GeV;
     float py = thePrim->GetPy()/GeV;
@@ -151,9 +155,9 @@ void CaloShowerProfile::update(const BeginOfEvent * evt) {
 
     double beamThet = pvMomentum.theta();
     double beamPhi  = (pvMomentum.phi() < 0.0) ? pvMomentum.phi()+CLHEP::twopi : pvMomentum.phi();
-
-
-    beamline_RM = new G4RotationMatrix;
+//    trfrm = G4RotateY3D(-beamThet)*G4RotateZ3D(-beamPhi);
+    Rphi = beamPhi;
+    Rtheta = beamThet;
     beamline_RM->rotateZ(-beamPhi);
     beamline_RM->rotateY(-beamThet);
     }
@@ -166,8 +170,16 @@ void CaloShowerProfile::update(const BeginOfEvent * evt) {
 void CaloShowerProfile::update(const G4Step * aStep) {
   if (aStep != NULL) {
 // Get Step properties
-    G4ThreeVector thePreStepPoint  = (*beamline_RM)*(aStep->GetPreStepPoint()->GetPosition());
+//    G4ThreeVector thePreStepPoint  = (*beamline_RM)*(aStep->GetPreStepPoint()->GetPosition());
     G4ThreeVector thePostStepPoint;
+
+    if ( !firstInter ) {
+      pvPosition = aStep->GetPreStepPoint()->GetPosition();
+      firstInter = true;
+    }
+    G4Point3D thePreStepPoint3D(aStep->GetPreStepPoint()->GetPosition().x(), aStep->GetPreStepPoint()->GetPosition().y(), aStep->GetPreStepPoint()->GetPosition().z());
+    thePreStepPoint3D.transform(G4RotateY3D(-Rtheta)*G4RotateZ3D(-Rphi)*G4Translate3D(pvPosition.x(), pvPosition.y(),pvPosition.z()));
+    G4ThreeVector thePreStepPoint(thePreStepPoint3D.x(), thePreStepPoint3D.y(),thePreStepPoint3D.z());
 
 // Get Tracks properties
     G4Track*      aTrack   = aStep->GetTrack();
@@ -207,6 +219,9 @@ void CaloShowerProfile::update(const G4Step * aStep) {
 //     std::cout<<"the Sensitive Detector:"<< aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;}
 //     else std::cout<<aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;
 
+//if (aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName().find("Ecal") != std::string::npos && aStep->GetPreStepPoint()->GetMaterial()->GetName().find("PbWO4") != std::string::npos) std::cout<<aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName()<<" z= "<<thePreStepPoint.z()<<" - "<<std::endl;
+
+
       if(saveHits){
         m_hit_x->push_back(hitXYZ.x());
         m_hit_y->push_back(hitXYZ.y());
@@ -214,10 +229,6 @@ void CaloShowerProfile::update(const G4Step * aStep) {
         m_hit_e->push_back(aStep->GetTotalEnergyDeposit()/GeV);
       }
 
-      if ( !firstInter ) {
-        pvPosition = thePreStepPoint;
-        firstInter = true;
-      }
   
       G4String pross = aStep->GetPostStepPoint()->GetProcessDefinedStep()->GetProcessName();
   
@@ -235,6 +246,13 @@ void CaloShowerProfile::update(const G4Step * aStep) {
             ePi0late += aTrack->GetKineticEnergy()/GeV;
             lPi0ID.push_back(trackID);}
         }
+      }
+
+//      if(trackID ==1 && aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName().find("Ecal") != std::string::npos && aStep->GetPreStepPoint()->GetMaterial()->GetName().find("PbWO4") != std::string::npos) std::cout<<"pion in z:"<<thePreStepPoint.z()<<" First inelastic interaction at:"<<pvUVW.z()<<std::endl;
+
+      if(trackID ==1 && aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName().find("Ecal") != std::string::npos && aStep->GetPreStepPoint()->GetMaterial()->GetName().find("PbWO4") != std::string::npos && !EcalEntrance){
+        EcalEntrance =true;
+        m_EcalEntrance_z = thePreStepPoint.z();
       }
 
       G4String DetectorHit = aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
@@ -289,5 +307,7 @@ void CaloShowerProfile::update(const EndOfEvent * evt) {
   delete h_eHadronic_HCAL   ;
   delete h_ePi0First_HCAL   ;
   delete h_ePi0Late_HCAL    ;
+
+//  std::cout<<"Eta:"<<m_p_eta<<" pvPosition.z(): "<<pvPosition.z()<<": m_EcalEntrance_z:"<<m_EcalEntrance_z<<std::endl;
 }
 

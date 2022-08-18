@@ -29,11 +29,12 @@
 #include <TF1.h>
 #include <TH2F.h>
 #include <TH1F.h>
-
-
-
 #include "G4ThreeVector.hh"
 #include "G4RotationMatrix.hh"
+#include "G4Transform3D.hh"
+#include "G4Point3D.hh"
+
+using namespace std;
 
 class G4Step;
 class BeginOfJob;
@@ -46,11 +47,11 @@ namespace CLHEP {
 }
 
 class CaloShowerProfile : public SimWatcher,
-			 public Observer<const BeginOfJob *>, 
-			 public Observer<const BeginOfRun *>, 
-			 public Observer<const BeginOfEvent *>, 
-			 public Observer<const EndOfEvent *>, 
-			 public Observer<const G4Step *> {
+             public Observer<const BeginOfJob *>, 
+             public Observer<const BeginOfRun *>, 
+             public Observer<const BeginOfEvent *>, 
+             public Observer<const EndOfEvent *>, 
+             public Observer<const G4Step *> {
 
 public:
   CaloShowerProfile(const edm::ParameterSet &p);
@@ -70,14 +71,16 @@ private:
   G4ThreeVector             pvPosition, pvMomentum, pvUVW;
   std::string               fileName;
   double                    eta0, phi0;
-  bool                      firstInter, firstInel;
+  bool                      firstInter, firstInel, EcalEntrance;
   bool                      saveHits;
   G4RotationMatrix*  beamline_RM;
+//  G4Translate3D* pv_translate;
+//  G4Transform3D trfrm;
   double                    ePi0late, ePi0first, eHadtot;
   G4ThreeVector      hitPosition, hitXYZ;
   std::vector<int> fPi0ID, lPi0ID;
-
-
+  double Rphi, Rtheta;
+//  G4Point3D pv_translate;  
 
   TTree* eventTree;
   float m_p_E;
@@ -96,6 +99,7 @@ private:
   float m_pvInt_x;
   float m_pvInt_y;
   float m_pvInt_z;
+  float m_EcalEntrance_z;
 
   float m_pvIneInt_x;
   float m_pvIneInt_y;

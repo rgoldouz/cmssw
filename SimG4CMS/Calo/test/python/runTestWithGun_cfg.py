@@ -76,7 +76,7 @@ process.RandomNumberGeneratorService.g4SimHits.initialSeed = 9876
 process.RandomNumberGeneratorService.VtxSmeared.initialSeed = 123456789
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(500)
+    input = cms.untracked.int32(20)
 )
 
 process.source = cms.Source("EmptySource",
@@ -87,12 +87,12 @@ process.source = cms.Source("EmptySource",
 process.generator = cms.EDProducer("FlatRandomEGunProducer",
     PGunParameters = cms.PSet(
         PartID = cms.vint32(211),
-        MinEta = cms.double(-0.05),
-        MaxEta = cms.double(0.05),
+        MinEta = cms.double(-1.41),
+        MaxEta = cms.double(1.41),
         MinPhi = cms.double(-3.14159265359),
         MaxPhi = cms.double(3.14159265359),
-        MinE   = cms.double(99.99),
-        MaxE   = cms.double(100.01)
+        MinE   = cms.double(49.99),
+        MaxE   = cms.double(500.01)
     ),
     Verbosity       = cms.untracked.int32(0),
     AddAntiParticle = cms.bool(False)
