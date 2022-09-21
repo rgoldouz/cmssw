@@ -164,6 +164,7 @@ void CaloShowerProfile::update(const BeginOfEvent * evt) {
    ePi0first = ePi0late  = 0.0;
    fPi0ID.clear();
    lPi0ID.clear();
+   m_EcalEntrance_z=-999;
 }
 
 //=================================================================== each STEP
@@ -171,16 +172,20 @@ void CaloShowerProfile::update(const G4Step * aStep) {
   if (aStep != NULL) {
 // Get Step properties
 //    G4ThreeVector thePreStepPoint  = (*beamline_RM)*(aStep->GetPreStepPoint()->GetPosition());
-    G4ThreeVector thePostStepPoint;
-
     if ( !firstInter ) {
       pvPosition = aStep->GetPreStepPoint()->GetPosition();
       firstInter = true;
     }
     G4Point3D thePreStepPoint3D(aStep->GetPreStepPoint()->GetPosition().x(), aStep->GetPreStepPoint()->GetPosition().y(), aStep->GetPreStepPoint()->GetPosition().z());
-    thePreStepPoint3D.transform(G4RotateY3D(-Rtheta)*G4RotateZ3D(-Rphi)*G4Translate3D(pvPosition.x(), pvPosition.y(),pvPosition.z()));
+    thePreStepPoint3D.transform(G4RotateY3D(-Rtheta)*G4RotateZ3D(-Rphi)*G4Translate3D(-pvPosition.x(), -pvPosition.y(),-pvPosition.z()));
     G4ThreeVector thePreStepPoint(thePreStepPoint3D.x(), thePreStepPoint3D.y(),thePreStepPoint3D.z());
 
+    G4ThreeVector thePostStepPoint;
+    if(aStep->GetPostStepPoint()){
+      G4Point3D thePostStepPoint3D(aStep->GetPostStepPoint()->GetPosition().x(), aStep->GetPostStepPoint()->GetPosition().y(), aStep->GetPostStepPoint()->GetPosition().z());
+      thePostStepPoint3D.transform(G4RotateY3D(-Rtheta)*G4RotateZ3D(-Rphi)*G4Translate3D(-pvPosition.x(), -pvPosition.y(),-pvPosition.z()));
+      thePostStepPoint.set(thePostStepPoint3D.x(), thePostStepPoint3D.y(),thePostStepPoint3D.z());
+    }
 // Get Tracks properties
     G4Track*      aTrack   = aStep->GetTrack();
     int           trackID  = aTrack->GetTrackID();
@@ -189,14 +194,6 @@ void CaloShowerProfile::update(const G4Step * aStep) {
     G4ThreeVector momentum = aTrack->GetMomentum();
     G4String      partType = aTrack->GetDefinition()->GetParticleType();
     G4VPhysicalVolume* curPV  = aStep->GetPreStepPoint()->GetPhysicalVolume();
-
-    G4String thePostPVname = "NoName";
-    G4StepPoint * thePostPoint = aStep->GetPostStepPoint();
-    if (thePostPoint) {
-       thePostStepPoint = thePostPoint->GetPosition();
-       G4VPhysicalVolume * thePostPV = thePostPoint->GetPhysicalVolume ();
-       if (thePostPV) thePostPVname = thePostPV->GetName ();
-    }
 
     G4String name01 = curPV->GetName();
     G4String name02, name03;
@@ -212,20 +209,20 @@ void CaloShowerProfile::update(const G4Step * aStep) {
          name02=="EBP" || name02=="EFA" ) {
 */
 
-      hitPosition = G4ThreeVector(thePostStepPoint.x(),thePostStepPoint.y(),thePostStepPoint.z());
-      hitXYZ      = (*beamline_RM)*(hitPosition);
+//      hitPosition = G4ThreeVector(thePostStepPoint.x(),thePostStepPoint.y(),thePostStepPoint.z());
+//      thePostStepPoint      = (*beamline_RM)*(hitPosition);
  
 //     if (aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()) { 
-//     std::cout<<"the Sensitive Detector:"<< aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;}
-//     else std::cout<<aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName()<<" z= "<<hitXYZ.z()<<std::endl;
+//     std::cout<<"the Sensitive Detector:"<< aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetSensitiveDetector()->GetName()<<" z= "<<thePostStepPoint.z()<<std::endl;}
+//     else std::cout<<aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName()<<" z= "<<thePostStepPoint.z()<<std::endl;
 
 //if (aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName().find("Ecal") != std::string::npos && aStep->GetPreStepPoint()->GetMaterial()->GetName().find("PbWO4") != std::string::npos) std::cout<<aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName()<<" z= "<<thePreStepPoint.z()<<" - "<<std::endl;
 
 
       if(saveHits){
-        m_hit_x->push_back(hitXYZ.x());
-        m_hit_y->push_back(hitXYZ.y());
-        m_hit_z->push_back(hitXYZ.z());
+        m_hit_x->push_back(thePostStepPoint.x());
+        m_hit_y->push_back(thePostStepPoint.y());
+        m_hit_z->push_back(thePostStepPoint.z());
         m_hit_e->push_back(aStep->GetTotalEnergyDeposit()/GeV);
       }
 
@@ -236,6 +233,8 @@ void CaloShowerProfile::update(const G4Step * aStep) {
       {
        pvUVW = thePreStepPoint;
        firstInel = true;
+//       std::cout<<"First inelastic interaction at x="<<thePreStepPoint.x()<<",y="<<thePreStepPoint.y()<<",z="<<thePreStepPoint.z()<<", trackID="<<trackID<<", pross="<<pross<<endl;
+//       std::cout<<"First inelastic post interaction at x="<<thePostStepPoint.x()<<",y="<<thePostStepPoint.y()<<",z="<<thePostStepPoint.z()<<", trackID="<<trackID<<", pross="<<pross<<endl;
       }
       if ( trackID !=1 && (aTrack->GetCurrentStepNumber()==1) ) {
         if ( aTrack->GetDefinition()->GetParticleName() == "pi0") {                    
@@ -257,21 +256,21 @@ void CaloShowerProfile::update(const G4Step * aStep) {
 
       G4String DetectorHit = aStep->GetPreStepPoint()->GetPhysicalVolume()->GetLogicalVolume()->GetRegion()->GetName();
       if(std::find(fPi0ID.begin(), fPi0ID.end(), parentID) != fPi0ID.end()){
-        h_ePi0First->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
-        if(DetectorHit.find("Ecal")!= std::string::npos) h_ePi0First_ECAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
-        if(DetectorHit.find("Hcal")!= std::string::npos) h_ePi0First_HCAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        h_ePi0First->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Ecal")!= std::string::npos) h_ePi0First_ECAL->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Hcal")!= std::string::npos) h_ePi0First_HCAL->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
         if(!(std::find(fPi0ID.begin(), fPi0ID.end(), trackID) != fPi0ID.end())) fPi0ID.push_back(trackID);}
 
       else if(std::find(lPi0ID.begin(), lPi0ID.end(), parentID) != lPi0ID.end()){ 
-        h_ePi0Late->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
-        if(DetectorHit.find("Ecal")!= std::string::npos) h_ePi0Late_ECAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
-        if(DetectorHit.find("Hcal")!= std::string::npos) h_ePi0Late_HCAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        h_ePi0Late->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Ecal")!= std::string::npos) h_ePi0Late_ECAL->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Hcal")!= std::string::npos) h_ePi0Late_HCAL->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
         if(!(std::find(lPi0ID.begin(), lPi0ID.end(), trackID) != lPi0ID.end())) lPi0ID.push_back(trackID);}
 
       else{
-        h_eHadronic->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
-        if(DetectorHit.find("Ecal")!= std::string::npos) h_eHadronic_ECAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);
-        if(DetectorHit.find("Hcal")!= std::string::npos) h_eHadronic_HCAL->Fill(hitXYZ.z(),aStep->GetTotalEnergyDeposit()/GeV);}
+        h_eHadronic->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Ecal")!= std::string::npos) h_eHadronic_ECAL->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);
+        if(DetectorHit.find("Hcal")!= std::string::npos) h_eHadronic_HCAL->Fill(thePostStepPoint.z(),aStep->GetTotalEnergyDeposit()/GeV);}
      
 //    }
   }  
