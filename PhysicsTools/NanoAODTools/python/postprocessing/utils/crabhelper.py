@@ -2,7 +2,7 @@ import os
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import *
 import sys
 import re
-import PSet
+#import PSet
 
 
 def inputFiles():

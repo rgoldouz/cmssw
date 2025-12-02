@@ -1,0 +1,5 @@
+# this is a comment
+#keep *
+drop *
+keep Photon_*
+keep Electron_*
