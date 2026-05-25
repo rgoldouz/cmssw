@@ -6,8 +6,8 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 class lepTopskimModule(Module):
     def __init__(self):
-        self.ellFilt = lambda x: (x.pt>140 and x.cutBased > 1)
-        self.muFilt = lambda x: (x.pt>140 and x.isGlobal)
+        self.ellFilt = lambda x: (x.pt>14 and abs(x.eta)<2.5)
+        self.muFilt = lambda x: (x.pt>14 and abs(x.eta)<2.5)
 
         pass
 

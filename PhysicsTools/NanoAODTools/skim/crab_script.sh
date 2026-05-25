@@ -1,10 +1,5 @@
 #this is not mean to be run locally
 #
-echo Check if TTY
-if [ "`tty`" != "not a tty" ]; then
-  echo "YOU SHOULD NOT RUN THIS IN INTERACTIVE, IT DELETES YOUR LOCAL FILES"
-else
-
 echo "ENV..................................."
 env 
 echo "VOMS"
@@ -13,7 +8,16 @@ echo "CMSSW BASE, python path, pwd"
 echo $CMSSW_BASE 
 echo $PYTHON_PATH
 echo $PWD 
+echo "Adding current directory to PYTHONPATH"
+export PYTHONPATH=$PYTHONPATH:$PWD
 
 echo Found Proxy in: $X509_USER_PROXY
-python Lobster_postproc.py $1 $2 $3 $4 $5
-fi
+JOBID=$1
+shift
+
+echo "JobID: $JOBID"
+echo "All remaining arguments:"
+echo "$@"
+
+python3 Lobster_postproc.py "$@"
+echo "<FrameworkJobReport></FrameworkJobReport>" > FrameworkJobReport.xml
