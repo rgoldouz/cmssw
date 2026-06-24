@@ -8,6 +8,7 @@ import Files_2024
 import os.path
 from os import path
 #before running this do 
+#slc9 CRAB JUST WORKS IN SINGULARITIES
 #source /cvmfs/cms.cern.ch/cmsset_default.sh
 #source /cvmfs/cms.cern.ch/crab3/crab.sh
 

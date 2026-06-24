@@ -15,6 +15,7 @@ if UL_YEAR=='UL24':
 #    SAMPLES.update(Files_2024.mc_samples)
     SAMPLES.update(Files_2024.data_samples)
     for key, value in SAMPLES.items():
+#        os.system("crab kill -d crab_NanoAodPostProcessingUL24/crab_" + key)
         os.system("crab status -d crab_NanoAodPostProcessingUL24/crab_" + key)
         os.system("crab resubmit -d crab_NanoAodPostProcessingUL24/crab_" + key)
 
